@@ -156,7 +156,7 @@
     }
     const note = $('finalNote');
     if (finalNote) {
-      note.innerHTML = "<h4>Manager's sign-off</h4>" + fmt(finalNote);
+      note.innerHTML = "<h4>Our recommendations — why these grants fit</h4>" + fmt(finalNote);
       note.classList.remove('hidden');
     } else {
       note.classList.add('hidden');
@@ -258,6 +258,7 @@
     showStatusPanel();
     addSystem('Five agents are at work — each task ticks off in the panel →');
     let search = null;
+    let recommendations = null;
     for (let i = 0; i < STAGES.length; i++) {
       const meta = STAGES[i];
       const step = STEP_OF[meta.stage];
@@ -275,8 +276,9 @@
       setStepLine(line, 'done', json.output);
       history.push({ id: json.agent.id, name: json.agent.name, role: json.agent.role, output: json.output });
       if (meta.stage === 'researcher') search = json.search;
+      if (meta.stage === 'communicator') recommendations = json.output;
       if (meta.stage === 'manager') {
-        showResults(search && search.executed ? search.matched : [], json.output);
+        showResults(search && search.executed ? search.matched : [], recommendations);
         addBot('All done — your matched grants are ready in the table on the right. Ask me if you\'d like to explore any of them further.');
       }
     }
