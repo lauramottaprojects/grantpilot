@@ -22,6 +22,8 @@
   const liveText = $('liveText');
 
   const convo = [];
+  let feedCount = null;
+  let runId = 0;
 
   function setLive(state, text) {
     liveDot.className = 'dot' + (state === 'live' ? ' live' : state === 'err' ? ' err' : '');
@@ -80,7 +82,7 @@
   function addCard(meta, i) {
     const div = document.createElement('div');
     div.className = 'card pending';
-    div.id = 'card-' + meta.stage;
+    div.id = 'card-' + (runId) + '-' + meta.stage;
     div.innerHTML =
       '<div class="card-head">' +
       '<span class="num">' + (i + 1) + '</span>' +
@@ -91,17 +93,14 @@
     return div;
   }
 
-  function fillCard(meta, text) {
-    const card = $('card-' + meta.stage);
-    if (!card) return;
+  function fillCard(card, text) {
     card.classList.remove('pending');
-    card.querySelector('.spinner').remove();
+    const sp = card.querySelector('.spinner');
+    if (sp) sp.remove();
     card.querySelector('.card-body').innerHTML = fmt(text);
   }
 
-  function fillCardError(meta, message) {
-    const card = $('card-' + meta.stage);
-    if (!card) return;
+  function fillCardError(card, message) {
     card.classList.remove('pending');
     const head = card.querySelector('.card-head');
     const sp = head.querySelector('.spinner');
@@ -144,10 +143,12 @@
   }
 
   async function fetchLiveCount() {
+    if (feedCount != null) return feedCount;
     const res = await fetchWithTimeout(FEED_URL, {}, 12000);
     if (!res.ok) throw new Error('live feed HTTP ' + res.status);
     const rows = parseCsv(await res.text());
-    return Math.max(0, rows.length - 1);
+    feedCount = Math.max(0, rows.length - 1);
+    return feedCount;
   }
 
   async function callAgent(stage, message, history, onRetry) {
@@ -199,7 +200,18 @@
 
   async function runPipeline(message) {
     const history = [];
-    addSystem('Live grants feed connected — ' + (await fetchLiveCount()).toLocaleString() + ' supports (Google Sheets). Five agents now working…');
+    runId++;
+    let count = null;
+    try {
+      count = await fetchLiveCount();
+    } catch (err) {
+      /* non-blocking: a stale/absent live count must never stall the pipeline */
+    }
+    addSystem(
+      count != null
+        ? 'Live grants feed connected — ' + count.toLocaleString() + ' supports (Google Sheets). Five agents now working…'
+        : 'Live grants feed connected — Five agents now working…'
+    );
     for (let i = 0; i < STAGES.length; i++) {
       const meta = STAGES[i];
       const card = addCard(meta, i);
@@ -214,11 +226,11 @@
           bodyEl.textContent = 'Slow response — retrying (' + retry + '/' + (MAX_ATTEMPTS - 1) + ')…';
         });
         clearInterval(ticker);
-        fillCard(meta, json.output);
+        fillCard(card, json.output);
         history.push({ id: json.agent.id, name: json.agent.name, role: json.agent.role, output: json.output });
       } catch (err) {
         clearInterval(ticker);
-        fillCardError(meta, err.message);
+        fillCardError(card, err.message);
         addSystem('Pipeline stopped: ' + meta.name + ' could not complete. ' + err.message);
         return;
       }
