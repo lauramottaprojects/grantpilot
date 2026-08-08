@@ -21,6 +21,8 @@
   const liveDot = $('liveDot');
   const liveText = $('liveText');
 
+  const convo = [];
+
   function setLive(state, text) {
     liveDot.className = 'dot' + (state === 'live' ? ' live' : state === 'err' ? ' err' : '');
     liveText.textContent = text;
@@ -58,6 +60,13 @@
     const div = document.createElement('div');
     div.className = 'msg user';
     div.textContent = text;
+    messagesEl.appendChild(div);
+  }
+
+  function addBot(text) {
+    const div = document.createElement('div');
+    div.className = 'msg bot';
+    div.innerHTML = fmt(text);
     messagesEl.appendChild(div);
   }
 
@@ -174,6 +183,20 @@
     throw lastErr;
   }
 
+  async function callIntake(convo) {
+    const res = await fetchWithTimeout(API_BASE + '/api/intake', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: convo }),
+    }, REQUEST_TIMEOUT_MS);
+    let json = null;
+    try { json = await res.json(); } catch (e) { /* non-JSON body */ }
+    if (!res.ok || !json || !json.ok) {
+      throw new Error((json && json.error) || 'intake API returned HTTP ' + res.status);
+    }
+    return json;
+  }
+
   async function runPipeline(message) {
     const history = [];
     addSystem('Live grants feed connected — ' + (await fetchLiveCount()).toLocaleString() + ' supports (Google Sheets). Five agents now working…');
@@ -207,11 +230,19 @@
     addUser(text);
     input.value = '';
     setBusy(true);
+    convo.push({ role: 'user', text });
     try {
-      await runPipeline(text);
+      const intake = await callIntake(convo);
+      if (intake.reply) {
+        convo.push({ role: 'assistant', text: intake.reply });
+        addBot(intake.reply);
+      }
+      if (intake.intent === 'run_pipeline') {
+        await runPipeline(convo.filter((m) => m.role === 'user').map((m) => m.text).join(' '));
+      }
     } catch (err) {
-      setLive('err', 'Live feed unreachable — retrying…');
-      addSystem('Could not reach the live grants database: ' + err.message);
+      setLive('err', 'Chatbot unreachable — retrying…');
+      addSystem('Could not reach the chatbot: ' + err.message);
     } finally {
       setBusy(false);
       input.focus();
