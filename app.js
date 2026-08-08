@@ -92,68 +92,54 @@
     messagesEl.appendChild(div);
   }
 
-  const STEP_OF = { researcher: 1, designer: 2, maker: 2, communicator: 3, manager: 3 };
-  const pillsByStep = { 1: [], 2: [], 3: [] };
+  const STEP_OF = { researcher: 1, designer: 2, maker: 3, communicator: 4, manager: 5 };
 
   function showStatusPanel() {
     $('statusPanel').classList.remove('hidden');
     $('resultsPanel').classList.add('hidden');
-    document.querySelectorAll('#steps > li').forEach((li) => li.classList.remove('done', 'err'));
-    document.querySelectorAll('.agent-pill').forEach((p) => p.remove());
-    pillsByStep[1] = []; pillsByStep[2] = []; pillsByStep[3] = [];
+    document.querySelectorAll('#steps > li').forEach((li) => {
+      li.classList.remove('done', 'err', 'working', 'open');
+      const out = li.querySelector('.step-out');
+      if (out) out.remove();
+    });
     if (feedCount != null) $('liveCount').textContent = feedCount.toLocaleString() + ' live supports';
     else $('liveCount').textContent = '';
   }
 
-  function addAgentPill(meta, step) {
-    const d = document.createElement('details');
-    d.className = 'agent-pill working';
-    d.innerHTML =
-      '<summary>' +
-      '<span class="pill-tick"></span>' +
-      '<span class="pill-who"><b>' + meta.name + '</b><span>' + meta.role + '</span></span>' +
-      '<span class="pill-state">Working…</span>' +
-      '</summary><div class="agent-out"></div>';
-    pillsByStep[step].push(d);
-    $('agents-' + step).appendChild(d);
-    return d;
-  }
-
-  function setPill(pill, state, payload) {
-    pill.classList.remove('working');
-    const stateEl = pill.querySelector('.pill-state');
-    const out = pill.querySelector('.agent-out');
-    if (state === 'done') {
-      pill.classList.add('done');
-      stateEl.textContent = '✓ Done';
-      out.innerHTML = fmt(payload);
-    } else if (state === 'err') {
-      pill.classList.add('err');
-      stateEl.textContent = '✕ Failed';
-      out.innerHTML = '<div><strong>Agent unavailable.</strong> ' + esc(payload) + '</div>';
-    } else if (state === 'retry') {
-      pill.classList.add('working');
-      stateEl.textContent = 'Retrying (' + payload + '/' + (MAX_ATTEMPTS - 1) + ')…';
-    }
-  }
-
-  function markStepDone(step) {
+  function addStepLine(meta, step) {
     const li = document.querySelector('#steps > li[data-step="' + step + '"]');
+    if (!li) return null;
+    const out = document.createElement('div');
+    out.className = 'step-out';
+    out.innerHTML = '<b>' + meta.name + ' · ' + meta.role + '</b><div class="step-body"></div>';
+    li.appendChild(out);
+    li.classList.add('working');
+    li.addEventListener('click', () => {
+      if (li.classList.contains('done') || li.classList.contains('err')) li.classList.toggle('open');
+    });
+    return li;
+  }
+
+  function setStepLine(li, state, payload) {
     if (!li) return;
-    if (pillsByStep[step].some((p) => p.classList.contains('err'))) {
-      li.classList.remove('done');
-      li.classList.add('err');
-    } else if (pillsByStep[step].every((p) => p.classList.contains('done'))) {
+    li.classList.remove('working');
+    const body = li.querySelector('.step-body');
+    if (state === 'done') {
       li.classList.add('done');
+      body.innerHTML = fmt(payload);
+    } else if (state === 'err') {
+      li.classList.add('err');
+      body.innerHTML = '<div><strong>Agent unavailable.</strong> ' + esc(payload) + '</div>';
+    } else if (state === 'retry') {
+      li.classList.add('working');
+      body.textContent = 'Slow response — retrying (' + payload + '/' + (MAX_ATTEMPTS - 1) + ')…';
     }
   }
 
-  function showResults(matched) {
+  function showResults(matched, finalNote) {
     const body = $('resultsBody');
     body.innerHTML = '';
-    const rows = matched.slice(0, 10);
-    if (!rows.length) return;
-    for (const r of rows) {
+    for (const r of (matched || []).slice(0, 10)) {
       const tr = document.createElement('tr');
       const prog = r['Programme Name'] || 'Unnamed programme';
       const amount = r['Max Amount (EUR)'] || 'Not published';
@@ -167,6 +153,13 @@
         '<td>' + esc(deadline) + '</td>' +
         '<td>' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">Apply ↗</a>' : '—') + '</td>';
       body.appendChild(tr);
+    }
+    const note = $('finalNote');
+    if (finalNote) {
+      note.innerHTML = "<h4>Manager's sign-off</h4>" + fmt(finalNote);
+      note.classList.remove('hidden');
+    } else {
+      note.classList.add('hidden');
     }
     $('resultsPanel').classList.remove('hidden');
   }
@@ -263,33 +256,28 @@
   async function runPipeline(message) {
     const history = [];
     showStatusPanel();
-    addSystem('Five agents are at work — follow their progress in the panel →');
+    addSystem('Five agents are at work — each task ticks off in the panel →');
     let search = null;
     for (let i = 0; i < STAGES.length; i++) {
       const meta = STAGES[i];
       const step = STEP_OF[meta.stage];
-      const pill = addAgentPill(meta, step);
+      const line = addStepLine(meta, step);
       let json;
       try {
         json = await callAgent(meta.stage, message, history, (retry) => {
-          setPill(pill, 'retry', retry);
+          setStepLine(line, 'retry', retry);
         });
       } catch (err) {
-        setPill(pill, 'err', err.message);
-        markStepDone(step);
+        setStepLine(line, 'err', err.message);
         addSystem('Pipeline stopped: ' + meta.name + ' could not complete. ' + err.message);
         return;
       }
-      setPill(pill, 'done', json.output);
+      setStepLine(line, 'done', json.output);
       history.push({ id: json.agent.id, name: json.agent.name, role: json.agent.role, output: json.output });
       if (meta.stage === 'researcher') search = json.search;
-      markStepDone(step);
       if (meta.stage === 'manager') {
-        addBot(json.output);
-        if (search && search.executed && search.matched && search.matched.length) {
-          showResults(search.matched);
-        }
-        addSystem('All five agents complete — your matches are in the table above.');
+        showResults(search && search.executed ? search.matched : [], json.output);
+        addBot('All done — your matched grants are ready in the table on the right. Ask me if you\'d like to explore any of them further.');
       }
     }
   }
