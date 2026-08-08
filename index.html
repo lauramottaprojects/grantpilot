@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GrantSeeker — GrantPilot Ireland</title>
+  <meta name="description" content="GrantSeeker matches Irish organisations to live state grants using a five-agent AI pipeline." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="logo">GP</span>
+      <div>
+        <h1>GrantSeeker</h1>
+        <p class="tag">by GrantPilot Ireland — your five-agent funding matchmaker</p>
+      </div>
+    </div>
+    <div class="statusbar">
+      <span id="liveDot" class="dot"></span>
+      <span id="liveText">Connecting to live grants database…</span>
+    </div>
+  </header>
+
+  <main id="chat">
+    <div class="welcome">
+      <h2>Tell us about your organisation</h2>
+      <p>One message. Five specialist agents work automatically behind it — <strong>Research → Design → Build → Communicate → Verify</strong> — and each one's output appears here, in order, as live evidence.</p>
+      <p class="hint">Example: <button class="chip" data-example="We're Meadow & Co, a small artisan dairy in Cork with 9 staff. We want funding for energy-efficient equipment. What fits?">"Artisan dairy in Cork, 9 staff, green equipment"</button> <button class="chip" data-example="We are a 3-person tech startup in Dublin building an AI accessibility app. What grants could fund our R&D?">"Tech startup, 3 staff, Dublin, R&D"</button></p>
+    </div>
+    <div id="messages"></div>
+  </main>
+
+  <footer>
+    <form id="form">
+      <input id="input" type="text" placeholder="Describe your organisation, size, location and funding need…" autocomplete="off" />
+      <button type="submit" id="send">Send</button>
+    </form>
+    <p class="footnote">Data source: National Enterprise Hub grants data via Google Sheets (live, CC BY 4.0). GrantSeeker is a discovery aid, not a grants adviser.</p>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
