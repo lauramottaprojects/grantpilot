@@ -29,7 +29,7 @@
     <main id="chat">
       <div class="welcome">
         <h2>Start a conversation</h2>
-        <p>Chat with <strong>Ella</strong>, GrantSeeker's concierge — tell her about your organisation and what you need funding for. When she has enough to go on, five specialist agents take over (<strong>Research → Design → Build → Communicate → Verify</strong>). Their progress ticks off in the panel on the right, and your matched grants appear as a table.</p>
+        <p>Chat with <strong>Ella</strong>, GrantSeeker's concierge — tell her about your organisation and what you need funding for. When she has enough to go on, five specialist agents take over (<strong>Research → Design → Build → Communicate → Verify</strong>). Each task ticks off in the panel on the right, and your matched grants appear there as a table.</p>
         <p class="hint">Try: <button class="chip" data-example="I would like to ask a food">"I would like to ask a food"</button> <button class="chip" data-example="We're Meadow &amp; Co, an artisan dairy in Cork with 9 staff. We need funding for energy-efficient equipment. What fits?">"Artisan dairy in Cork, 9 staff, green equipment"</button></p>
       </div>
       <div id="messages"></div>
@@ -39,9 +39,11 @@
       <section id="statusPanel" class="side-card hidden">
         <h3>GrantPilot at work <span id="liveCount" class="live-count"></span></h3>
         <ol id="steps">
-          <li data-step="1"><span class="tick"></span><div class="step-label">Check the available grants</div><div class="agents" id="agents-1"></div></li>
-          <li data-step="2"><span class="tick"></span><div class="step-label">Match the available grants with your organisation</div><div class="agents" id="agents-2"></div></li>
-          <li data-step="3"><span class="tick"></span><div class="step-label">Put the information together</div><div class="agents" id="agents-3"></div></li>
+          <li data-step="1"><span class="tick"></span><span class="step-label">Check the available grants</span><span class="chev"></span></li>
+          <li data-step="2"><span class="tick"></span><span class="step-label">Match the available grants with your organisation</span><span class="chev"></span></li>
+          <li data-step="3"><span class="tick"></span><span class="step-label">Build the match report</span><span class="chev"></span></li>
+          <li data-step="4"><span class="tick"></span><span class="step-label">Write your reply</span><span class="chev"></span></li>
+          <li data-step="5"><span class="tick"></span><span class="step-label">Verify and sign off</span><span class="chev"></span></li>
         </ol>
       </section>
 
@@ -53,6 +55,7 @@
             <tbody id="resultsBody"></tbody>
           </table>
         </div>
+        <div id="finalNote" class="final-note hidden"></div>
         <p class="panel-note">Live from the National Enterprise Hub grants registry (Google Sheets). Amounts and deadlines as published; eligibility is subject to agency terms.</p>
       </section>
     </aside>
