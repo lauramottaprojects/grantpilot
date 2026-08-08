@@ -25,14 +25,38 @@
     </div>
   </header>
 
-  <main id="chat">
-    <div class="welcome">
-      <h2>Start a conversation</h2>
-      <p>Chat with <strong>Ella</strong>, GrantSeeker's concierge — tell her about your organisation and what you need funding for. When she has enough to go on, five specialist agents take over (<strong>Research → Design → Build → Communicate → Verify</strong>) and their work appears here, in order, as live evidence cards.</p>
-      <p class="hint">Try: <button class="chip" data-example="I would like to ask a food">"I would like to ask a food"</button> <button class="chip" data-example="We're Meadow & Co, an artisan dairy in Cork with 9 staff. We need funding for energy-efficient equipment. What fits?">"Artisan dairy in Cork, 9 staff, green equipment"</button></p>
-    </div>
-    <div id="messages"></div>
-  </main>
+  <div class="layout">
+    <main id="chat">
+      <div class="welcome">
+        <h2>Start a conversation</h2>
+        <p>Chat with <strong>Ella</strong>, GrantSeeker's concierge — tell her about your organisation and what you need funding for. When she has enough to go on, five specialist agents take over (<strong>Research → Design → Build → Communicate → Verify</strong>). Their progress ticks off in the panel on the right, and your matched grants appear as a table.</p>
+        <p class="hint">Try: <button class="chip" data-example="I would like to ask a food">"I would like to ask a food"</button> <button class="chip" data-example="We're Meadow &amp; Co, an artisan dairy in Cork with 9 staff. We need funding for energy-efficient equipment. What fits?">"Artisan dairy in Cork, 9 staff, green equipment"</button></p>
+      </div>
+      <div id="messages"></div>
+    </main>
+
+    <aside id="side">
+      <section id="statusPanel" class="side-card hidden">
+        <h3>GrantPilot at work <span id="liveCount" class="live-count"></span></h3>
+        <ol id="steps">
+          <li data-step="1"><span class="tick"></span><div class="step-label">Check the available grants</div><div class="agents" id="agents-1"></div></li>
+          <li data-step="2"><span class="tick"></span><div class="step-label">Match the available grants with your organisation</div><div class="agents" id="agents-2"></div></li>
+          <li data-step="3"><span class="tick"></span><div class="step-label">Put the information together</div><div class="agents" id="agents-3"></div></li>
+        </ol>
+      </section>
+
+      <section id="resultsPanel" class="side-card hidden">
+        <h3>Your matched grants</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Programme</th><th>Agency</th><th>Type</th><th>Max amount</th><th>Deadline</th><th>Link</th></tr></thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+        </div>
+        <p class="panel-note">Live from the National Enterprise Hub grants registry (Google Sheets). Amounts and deadlines as published; eligibility is subject to agency terms.</p>
+      </section>
+    </aside>
+  </div>
 
   <footer>
     <form id="form">
