@@ -113,6 +113,9 @@ main {
   word-wrap: break-word;
 }
 .msg.user { align-self: flex-end; background: var(--brand); color: #fff; border-bottom-right-radius: 4px; }
+.msg.bot { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.msg.bot ul { margin: 6px 0 6px 4px; padding-left: 18px; }
+.msg.bot strong { font-weight: 600; }
 .msg.sys { align-self: center; background: transparent; color: var(--muted); font-size: 12.5px; padding: 2px 6px; }
 
 .card {
