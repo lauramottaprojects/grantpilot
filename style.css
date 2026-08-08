@@ -1,0 +1,193 @@
+:root {
+  --brand: #1f5e3a;
+  --brand-dark: #174a2c;
+  --accent: #b58a2c;
+  --bg: #f7f4ed;
+  --surface: #ffffff;
+  --ink: #14181b;
+  --muted: #5c6166;
+  --line: #e4e0d6;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+
+.logo {
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+}
+
+h1 { font-size: 19px; margin: 0; font-family: 'Source Serif 4', Georgia, serif; }
+.tag { margin: 0; font-size: 12px; color: var(--muted); }
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #c9c4b8;
+  display: inline-block;
+}
+.dot.live { background: #2f9e63; }
+.dot.err { background: #c0392b; }
+
+main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px;
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.welcome {
+  text-align: center;
+  padding: 26px 10px 8px;
+}
+.welcome h2 { font-family: 'Source Serif 4', Georgia, serif; margin: 0 0 8px; }
+.welcome p { color: var(--muted); margin: 6px auto; max-width: 620px; }
+.hint { font-size: 13px; }
+.chip {
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--brand);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.chip:hover { background: #eef3ec; }
+
+#messages { display: flex; flex-direction: column; gap: 12px; padding-top: 14px; }
+
+.msg {
+  max-width: 84%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  line-height: 1.5;
+  font-size: 14.5px;
+  word-wrap: break-word;
+}
+.msg.user { align-self: flex-end; background: var(--brand); color: #fff; border-bottom-right-radius: 4px; }
+.msg.sys { align-self: center; background: transparent; color: var(--muted); font-size: 12.5px; padding: 2px 6px; }
+
+.card {
+  align-self: flex-start;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--brand-dark);
+  color: #fff;
+}
+.card-head .num {
+  background: rgba(255,255,255,.16);
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+.card-head .who { flex: 1; }
+.card-head .who b { display: block; font-size: 14px; }
+.card-head .who span { font-size: 12px; opacity: .85; }
+.card-body { padding: 12px 16px; font-size: 14px; }
+.card-body ul { margin: 6px 0 6px 4px; padding-left: 18px; }
+.card-body div { margin: 4px 0; }
+.card-body strong { font-weight: 600; }
+
+.card.pending .card-body { color: var(--muted); font-style: italic; }
+.spinner {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+footer {
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: 12px 16px 10px;
+}
+footer form { display: flex; gap: 10px; max-width: 860px; margin: 0 auto; }
+#input {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-size: 14.5px;
+  outline: none;
+}
+#input:focus { border-color: var(--brand); }
+#send {
+  background: var(--brand);
+  color: #fff;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+#send:disabled { opacity: .5; cursor: default; }
+.footnote { text-align: center; font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+
+@media (max-width: 600px) {
+  .msg { max-width: 92%; }
+}
