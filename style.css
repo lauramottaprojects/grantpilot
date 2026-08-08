@@ -99,7 +99,8 @@ main {
   font-size: 12.5px;
   cursor: pointer;
 }
-.chip:hover { background: #eef3ec; }
+.chip:hover:not(:disabled) { background: #eef3ec; }
+.chip:disabled { opacity: .5; cursor: default; }
 
 #messages { display: flex; flex-direction: column; gap: 12px; padding-top: 14px; }
 
