@@ -1,5 +1,5 @@
 (function () {
-  const { API_BASE, FEED_URL, MODEL } = window.GRANTSEEKER;
+  const { API_BASE, FEED_URL } = window.GRANTSEEKER;
 
   const REQUEST_TIMEOUT_MS = 25000;
   const MAX_ATTEMPTS = 3;
@@ -18,16 +18,9 @@
   const form = $('form');
   const input = $('input');
   const sendBtn = $('send');
-  const liveDot = $('liveDot');
-  const liveText = $('liveText');
 
   const convo = [];
   let feedCount = null;
-
-  function setLive(state, text) {
-    liveDot.className = 'dot' + (state === 'live' ? ' live' : state === 'err' ? ' err' : '');
-    liveText.textContent = text;
-  }
 
   function setBusy(busy) {
     sendBtn.disabled = busy;
@@ -69,6 +62,13 @@
     if (inList) html += '</ul>';
     closeTable();
     return html;
+  }
+
+  function cleanAgentOutput(text) {
+    if (!text) return text;
+    const kept = text.split('\n').filter((l) => !/hand(?:ing)?\s*off\s*to|hand\s*over\s*to|handover\s*to|passing\s*(this|it)\s*(off|over)/i.test(l));
+    while (kept.length && /^\s*\*{2,}\s*$/.test(kept[kept.length - 1])) kept.pop();
+    return kept.join('\n');
   }
 
   function addUser(text) {
@@ -126,7 +126,7 @@
     const body = li.querySelector('.step-body');
     if (state === 'done') {
       li.classList.add('done');
-      body.innerHTML = fmt(payload);
+      body.innerHTML = fmt(cleanAgentOutput(payload));
     } else if (state === 'err') {
       li.classList.add('err');
       body.innerHTML = '<div><strong>Agent unavailable.</strong> ' + esc(payload) + '</div>';
@@ -142,21 +142,17 @@
     for (const r of (matched || []).slice(0, 10)) {
       const tr = document.createElement('tr');
       const prog = r['Programme Name'] || 'Unnamed programme';
-      const amount = r['Max Amount (EUR)'] || 'Not published';
-      const deadline = r['Deadline'] || 'Open-ended';
       const link = r['URL'] || '';
       tr.innerHTML =
         '<td class="prog">' + esc(prog) + '</td>' +
         '<td>' + esc(r['Agency'] || '—') + '</td>' +
         '<td>' + esc(r['Support Type'] || '—') + '</td>' +
-        '<td>' + esc(amount) + '</td>' +
-        '<td>' + esc(deadline) + '</td>' +
         '<td>' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">Apply ↗</a>' : '—') + '</td>';
       body.appendChild(tr);
     }
     const note = $('finalNote');
     if (finalNote) {
-      note.innerHTML = "<h4>Our recommendations — why these grants fit</h4>" + fmt(finalNote);
+      note.innerHTML = "<h4>Our recommendations — why these grants fit</h4>" + fmt(cleanAgentOutput(finalNote));
       note.classList.remove('hidden');
     } else {
       note.classList.add('hidden');
@@ -299,7 +295,6 @@
         await runPipeline(convo.filter((m) => m.role === 'user').map((m) => m.text).join(' '));
       }
     } catch (err) {
-      setLive('err', 'Chatbot unreachable — retrying…');
       addSystem('Could not reach the chatbot: ' + err.message);
     } finally {
       setBusy(false);
@@ -324,10 +319,9 @@
 
   (async function init() {
     try {
-      const count = await fetchLiveCount();
-      setLive('live', count.toLocaleString() + ' live supports · Google Sheets · ' + MODEL);
+      await fetchLiveCount();
     } catch (err) {
-      setLive('err', 'Live feed unreachable: ' + err.message);
+      /* header indicators removed; the live count is only shown in the status panel */
     }
   })();
 })();
