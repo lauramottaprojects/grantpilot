@@ -23,7 +23,6 @@
 
   const convo = [];
   let feedCount = null;
-  let runId = 0;
 
   function setLive(state, text) {
     liveDot.className = 'dot' + (state === 'live' ? ' live' : state === 'err' ? ' err' : '');
@@ -43,18 +42,32 @@
     const lines = esc(text).split('\n');
     let html = '';
     let inList = false;
-    for (const raw of lines) {
-      const line = raw.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      if (/^\s*[-*•]\s+/.test(line)) {
+    let inTable = false;
+    const closeTable = () => { if (inTable) { html += '</table>'; inTable = false; } };
+    for (let i = 0; i < lines.length; i++) {
+      const raw = lines[i];
+      const trimmed = raw.trim();
+      const isTableRow = trimmed.startsWith('|') && trimmed.endsWith('|') && trimmed.split('|').length >= 3;
+      const isSep = isTableRow && /^[|\s:.-]+$/.test(trimmed) && /-/.test(trimmed);
+      if (isTableRow) {
+        if (isSep) continue;
+        if (!inTable) { html += '<table>'; inTable = true; }
+        const cells = trimmed.replace(/^\||\|$/g, '').split('|').map((c) => c.trim().replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'));
+        html += '<tr>' + cells.map((c) => '<td>' + c + '</td>').join('') + '</tr>';
+        continue;
+      }
+      closeTable();
+      if (/^\s*[-*•]\s+/.test(trimmed)) {
         if (!inList) { html += '<ul>'; inList = true; }
-        html += '<li>' + line.replace(/^\s*[-*•]\s+/, '') + '</li>';
+        html += '<li>' + trimmed.replace(/^\s*[-*•]\s+/, '') + '</li>';
       } else {
         if (inList) { html += '</ul>'; inList = false; }
-        if (line.trim() === '') continue;
-        html += '<div>' + line + '</div>';
+        if (trimmed === '') continue;
+        html += '<div>' + trimmed + '</div>';
       }
     }
     if (inList) html += '</ul>';
+    closeTable();
     return html;
   }
 
@@ -79,34 +92,83 @@
     messagesEl.appendChild(div);
   }
 
-  function addCard(meta, i) {
-    const div = document.createElement('div');
-    div.className = 'card pending';
-    div.id = 'card-' + (runId) + '-' + meta.stage;
-    div.innerHTML =
-      '<div class="card-head">' +
-      '<span class="num">' + (i + 1) + '</span>' +
-      '<div class="who"><b>' + meta.name + '</b><span>' + meta.role + '</span></div>' +
-      '<span class="spinner"></span>' +
-      '</div><div class="card-body">Working…</div>';
-    messagesEl.appendChild(div);
-    return div;
+  const STEP_OF = { researcher: 1, designer: 2, maker: 2, communicator: 3, manager: 3 };
+  const pillsByStep = { 1: [], 2: [], 3: [] };
+
+  function showStatusPanel() {
+    $('statusPanel').classList.remove('hidden');
+    $('resultsPanel').classList.add('hidden');
+    document.querySelectorAll('#steps > li').forEach((li) => li.classList.remove('done', 'err'));
+    document.querySelectorAll('.agent-pill').forEach((p) => p.remove());
+    pillsByStep[1] = []; pillsByStep[2] = []; pillsByStep[3] = [];
+    if (feedCount != null) $('liveCount').textContent = feedCount.toLocaleString() + ' live supports';
+    else $('liveCount').textContent = '';
   }
 
-  function fillCard(card, text) {
-    card.classList.remove('pending');
-    const sp = card.querySelector('.spinner');
-    if (sp) sp.remove();
-    card.querySelector('.card-body').innerHTML = fmt(text);
+  function addAgentPill(meta, step) {
+    const d = document.createElement('details');
+    d.className = 'agent-pill working';
+    d.innerHTML =
+      '<summary>' +
+      '<span class="pill-tick"></span>' +
+      '<span class="pill-who"><b>' + meta.name + '</b><span>' + meta.role + '</span></span>' +
+      '<span class="pill-state">Working…</span>' +
+      '</summary><div class="agent-out"></div>';
+    pillsByStep[step].push(d);
+    $('agents-' + step).appendChild(d);
+    return d;
   }
 
-  function fillCardError(card, message) {
-    card.classList.remove('pending');
-    const head = card.querySelector('.card-head');
-    const sp = head.querySelector('.spinner');
-    if (sp) sp.remove();
-    card.querySelector('.card-body').innerHTML =
-      '<div><strong>Agent unavailable.</strong> ' + esc(message) + '</div>';
+  function setPill(pill, state, payload) {
+    pill.classList.remove('working');
+    const stateEl = pill.querySelector('.pill-state');
+    const out = pill.querySelector('.agent-out');
+    if (state === 'done') {
+      pill.classList.add('done');
+      stateEl.textContent = '✓ Done';
+      out.innerHTML = fmt(payload);
+    } else if (state === 'err') {
+      pill.classList.add('err');
+      stateEl.textContent = '✕ Failed';
+      out.innerHTML = '<div><strong>Agent unavailable.</strong> ' + esc(payload) + '</div>';
+    } else if (state === 'retry') {
+      pill.classList.add('working');
+      stateEl.textContent = 'Retrying (' + payload + '/' + (MAX_ATTEMPTS - 1) + ')…';
+    }
+  }
+
+  function markStepDone(step) {
+    const li = document.querySelector('#steps > li[data-step="' + step + '"]');
+    if (!li) return;
+    if (pillsByStep[step].some((p) => p.classList.contains('err'))) {
+      li.classList.remove('done');
+      li.classList.add('err');
+    } else if (pillsByStep[step].every((p) => p.classList.contains('done'))) {
+      li.classList.add('done');
+    }
+  }
+
+  function showResults(matched) {
+    const body = $('resultsBody');
+    body.innerHTML = '';
+    const rows = matched.slice(0, 10);
+    if (!rows.length) return;
+    for (const r of rows) {
+      const tr = document.createElement('tr');
+      const prog = r['Programme Name'] || 'Unnamed programme';
+      const amount = r['Max Amount (EUR)'] || 'Not published';
+      const deadline = r['Deadline'] || 'Open-ended';
+      const link = r['URL'] || '';
+      tr.innerHTML =
+        '<td class="prog">' + esc(prog) + '</td>' +
+        '<td>' + esc(r['Agency'] || '—') + '</td>' +
+        '<td>' + esc(r['Support Type'] || '—') + '</td>' +
+        '<td>' + esc(amount) + '</td>' +
+        '<td>' + esc(deadline) + '</td>' +
+        '<td>' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">Apply ↗</a>' : '—') + '</td>';
+      body.appendChild(tr);
+    }
+    $('resultsPanel').classList.remove('hidden');
   }
 
   function parseCsv(text) {
@@ -200,42 +262,36 @@
 
   async function runPipeline(message) {
     const history = [];
-    runId++;
-    let count = null;
-    try {
-      count = await fetchLiveCount();
-    } catch (err) {
-      /* non-blocking: a stale/absent live count must never stall the pipeline */
-    }
-    addSystem(
-      count != null
-        ? 'Live grants feed connected — ' + count.toLocaleString() + ' supports (Google Sheets). Five agents now working…'
-        : 'Live grants feed connected — Five agents now working…'
-    );
+    showStatusPanel();
+    addSystem('Five agents are at work — follow their progress in the panel →');
+    let search = null;
     for (let i = 0; i < STAGES.length; i++) {
       const meta = STAGES[i];
-      const card = addCard(meta, i);
-      const bodyEl = card.querySelector('.card-body');
-      const t0 = Date.now();
-      const ticker = setInterval(() => {
-        if (!bodyEl) return;
-        bodyEl.textContent = 'Working… ' + Math.floor((Date.now() - t0) / 1000) + 's';
-      }, 1000);
+      const step = STEP_OF[meta.stage];
+      const pill = addAgentPill(meta, step);
+      let json;
       try {
-        const json = await callAgent(meta.stage, message, history, (retry) => {
-          bodyEl.textContent = 'Slow response — retrying (' + retry + '/' + (MAX_ATTEMPTS - 1) + ')…';
+        json = await callAgent(meta.stage, message, history, (retry) => {
+          setPill(pill, 'retry', retry);
         });
-        clearInterval(ticker);
-        fillCard(card, json.output);
-        history.push({ id: json.agent.id, name: json.agent.name, role: json.agent.role, output: json.output });
       } catch (err) {
-        clearInterval(ticker);
-        fillCardError(card, err.message);
+        setPill(pill, 'err', err.message);
+        markStepDone(step);
         addSystem('Pipeline stopped: ' + meta.name + ' could not complete. ' + err.message);
         return;
       }
+      setPill(pill, 'done', json.output);
+      history.push({ id: json.agent.id, name: json.agent.name, role: json.agent.role, output: json.output });
+      if (meta.stage === 'researcher') search = json.search;
+      markStepDone(step);
+      if (meta.stage === 'manager') {
+        addBot(json.output);
+        if (search && search.executed && search.matched && search.matched.length) {
+          showResults(search.matched);
+        }
+        addSystem('All five agents complete — your matches are in the table above.');
+      }
     }
-    addSystem('All five agents complete — see each evidence card above.');
   }
 
   async function submit(text) {
