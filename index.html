@@ -3,66 +3,179 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GrantSeeker — GrantPilot Ireland</title>
-  <meta name="description" content="GrantSeeker matches Irish organisations to live state grants using a five-agent AI pipeline." />
+  <title>GrantPilot Ireland — Grant consultancy from first match to drawdown</title>
+  <meta name="description" content="GrantPilot Ireland is a grant consultancy for Irish organisations. We match you to live state supports, help you apply, and stay with you until the grant is drawn down. Meet GrantSeeker, our AI funding concierge." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <div class="brand">
+  <header class="site-head">
+    <a class="brand" href="#top">
       <span class="logo">GP</span>
-      <div>
-        <h1>GrantSeeker</h1>
-        <p class="tag">by GrantPilot Ireland — your five-agent funding matchmaker</p>
-      </div>
-    </div>
+      <span class="brand-text">
+        <span class="brand-name">GrantPilot <span class="ireland">Ireland</span></span>
+        <span class="tag">grant consultancy · from match to drawdown</span>
+      </span>
+    </a>
+    <nav class="nav">
+      <a href="#services">What we do</a>
+      <a href="#how">How it works</a>
+      <a href="#chat">GrantSeeker</a>
+      <a href="#contact" class="nav-cta">Talk to us</a>
+    </nav>
   </header>
 
-  <div class="layout">
-    <main id="chat">
-      <div class="welcome">
-        <h2>Start a conversation</h2>
-        <p>Chat with <strong>Ella</strong>, GrantSeeker's concierge — tell her about your organisation and what you need funding for. When she has enough to go on, five specialist agents take over (<strong>Research → Design → Build → Communicate → Verify</strong>). Each task ticks off in the panel on the right, and your matched grants appear there as a table.</p>
-        <p class="hint">Try: <button class="chip" data-example="I would like to ask a food">"I would like to ask a food"</button> <button class="chip" data-example="We're Meadow &amp; Co, an artisan dairy in Cork with 9 staff. We need funding for energy-efficient equipment. What fits?">"Artisan dairy in Cork, 9 staff, green equipment"</button></p>
-      </div>
-      <div id="messages"></div>
-    </main>
-
-    <aside id="side">
-      <section id="statusPanel" class="side-card hidden">
-        <h3>GrantPilot at work <span id="liveCount" class="live-count"></span></h3>
-        <ol id="steps">
-          <li data-step="1"><span class="tick"></span><span class="step-label">Check the available grants</span><span class="chev"></span></li>
-          <li data-step="2"><span class="tick"></span><span class="step-label">Match the available grants with your organisation</span><span class="chev"></span></li>
-          <li data-step="3"><span class="tick"></span><span class="step-label">Build the match report</span><span class="chev"></span></li>
-          <li data-step="4"><span class="tick"></span><span class="step-label">Write your reply</span><span class="chev"></span></li>
-          <li data-step="5"><span class="tick"></span><span class="step-label">Verify and sign off</span><span class="chev"></span></li>
-        </ol>
-      </section>
-
-      <section id="resultsPanel" class="side-card hidden">
-        <h3>Your matched grants</h3>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Programme</th><th>Agency</th><th>Type</th><th>Link</th></tr></thead>
-            <tbody id="resultsBody"></tbody>
-          </table>
+  <main class="page">
+    <section class="hero" id="top">
+      <div class="hero-inner">
+        <p class="eyebrow">Grant consultancy for Irish organisations</p>
+        <h1>We find the grants your organisation is missing — and stay with you until the funding lands.</h1>
+        <p class="hero-sub">GrantPilot Ireland helps Irish SMEs, charities and community organisations secure funding that genuinely fits. We match you to live state and agency supports, help you prepare a strong application, and support you through the entire process — right up to drawdown.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#chat">Chat with GrantSeeker</a>
+          <a class="btn btn-ghost" href="#services">See what we do</a>
         </div>
-        <div id="finalNote" class="final-note hidden"></div>
-        <p class="panel-note">Live from the National Enterprise Hub grants registry (Google Sheets). Eligibility is subject to agency terms.</p>
-      </section>
-    </aside>
-  </div>
+        <ul class="hero-stats">
+          <li><strong>300+</strong><span>live supports scanned</span></li>
+          <li><strong>5</strong><span>specialist agents on the job</span></li>
+          <li><strong>1</strong><span>team with you to drawdown</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="services">
+      <div class="section-head">
+        <h2>From opportunity to drawdown</h2>
+        <p>Funding is only useful if you find it, win it, and get it in the door. We handle all three.</p>
+      </div>
+      <div class="cards">
+        <article class="service">
+          <span class="service-num">01</span>
+          <h3>Match</h3>
+          <p>We scan the live funding database against your sector, size, location and need — so you only chase grants that genuinely fit your organisation.</p>
+        </article>
+        <article class="service">
+          <span class="service-num">02</span>
+          <h3>Apply</h3>
+          <p>We check your eligibility, gather the documentation and help you build a strong, accurate application — submitted before the deadline.</p>
+        </article>
+        <article class="service">
+          <span class="service-num">03</span>
+          <h3>Drawdown</h3>
+          <p>We stay with you through approval — queries, conditions and reporting — until the grant is actually drawn down.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="chat-section" id="chat">
+      <div class="section-head">
+        <h2>Meet GrantSeeker</h2>
+        <p>GrantSeeker is our AI funding concierge. Tell it about your organisation and what you need funding for, and five specialist agents will match you to live supports — with the reasons each one fits. A human consultant picks up from there.</p>
+      </div>
+      <div class="layout">
+        <div class="chat-col">
+          <div class="chat-welcome">
+            <p class="chat-welcome-tip">Describe your organisation and funding need to start — or tap an example below.</p>
+            <div class="chips">
+              <button class="chip" data-example="I would like to ask a food">A food business</button>
+              <button class="chip" data-example="We're Meadow &amp; Co, an artisan dairy in Cork with 9 staff. We need funding for energy-efficient equipment. What fits?">Artisan dairy in Cork, 9 staff</button>
+            </div>
+          </div>
+          <div id="messages" class="msgs"></div>
+          <form id="form" class="chat-form">
+            <input id="input" type="text" placeholder="Describe your organisation, size, location and funding need…" autocomplete="off" />
+            <button type="submit" id="send">Send</button>
+          </form>
+        </div>
+        <aside id="side">
+          <section id="statusPanel" class="side-card hidden">
+            <h3>GrantPilot at work <span id="liveCount" class="live-count"></span></h3>
+            <ol id="steps">
+              <li data-step="1"><span class="tick"></span><span class="step-label">Check the available grants</span><span class="chev"></span></li>
+              <li data-step="2"><span class="tick"></span><span class="step-label">Match the available grants with your organisation</span><span class="chev"></span></li>
+              <li data-step="3"><span class="tick"></span><span class="step-label">Build the match report</span><span class="chev"></span></li>
+              <li data-step="4"><span class="tick"></span><span class="step-label">Write your reply</span><span class="chev"></span></li>
+              <li data-step="5"><span class="tick"></span><span class="step-label">Verify and sign off</span><span class="chev"></span></li>
+            </ol>
+          </section>
+          <section id="resultsPanel" class="side-card hidden">
+            <h3>Your matched grants</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Programme</th><th>Agency</th><th>Type</th><th>Link</th></tr></thead>
+                <tbody id="resultsBody"></tbody>
+              </table>
+            </div>
+            <div id="finalNote" class="final-note hidden"></div>
+            <p class="panel-note">Live from the National Enterprise Hub grants registry (Google Sheets). Eligibility is subject to agency terms.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="section-head">
+        <h2>How it works</h2>
+        <p>Every match runs through our five-agent funding team — transparent, evidence-based, and verified before it reaches you.</p>
+      </div>
+      <ol class="how-list">
+        <li><b>Research</b><span>We scan the live funding database against your profile.</span></li>
+        <li><b>Design</b><span>We score every match on sector, size, location and need.</span></li>
+        <li><b>Build</b><span>We assemble your match report, with evidence for every pick.</span></li>
+        <li><b>Communicate</b><span>We explain the top pick first — and why it fits.</span></li>
+        <li><b>Verify</b><span>A quality pass confirms every name, amount and deadline.</span></li>
+      </ol>
+    </section>
+
+    <section class="section" id="why">
+      <div class="section-head">
+        <h2>Why GrantPilot Ireland</h2>
+      </div>
+      <div class="cards">
+        <article class="service">
+          <h3>Live data, not stale lists</h3>
+          <p>Every match comes from the live National Enterprise Hub dataset, queried at the moment you ask — 300+ Irish supports.</p>
+        </article>
+        <article class="service">
+          <h3>Honest fits</h3>
+          <p>No invented amounts or deadlines. If a support isn't published, we say so — never dressed up.</p>
+        </article>
+        <article class="service">
+          <h3>End-to-end support</h3>
+          <p>From the first match to drawdown, one team stays with you across every step of the process.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="contact-card">
+        <h2>Let's find your funding</h2>
+        <p>Tell us about your organisation and what you're trying to do. We'll set up a first conversation — no obligation.</p>
+        <p class="contact-row"><span>Email</span> <a href="mailto:grants@grantpilot.ie">grants@grantpilot.ie</a></p>
+        <p class="contact-row">Or ask GrantSeeker above — a consultant will pick up your conversation.</p>
+        <a class="btn btn-primary" href="#chat">Start the conversation</a>
+      </div>
+    </section>
+  </main>
 
   <footer>
-    <form id="form">
-      <input id="input" type="text" placeholder="Describe your organisation, size, location and funding need…" autocomplete="off" />
-      <button type="submit" id="send">Send</button>
-    </form>
-    <p class="footnote">Data source: National Enterprise Hub grants data via Google Sheets (live, CC BY 4.0). GrantSeeker is a discovery aid, not a grants adviser.</p>
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <span class="logo">GP</span>
+        <span class="brand-name">GrantPilot Ireland</span>
+        <p>Grant consultancy for Irish organisations — from first match to drawdown.</p>
+      </div>
+      <nav class="foot-nav">
+        <a href="#services">What we do</a>
+        <a href="#how">How it works</a>
+        <a href="#chat">GrantSeeker</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+    <p class="footnote">Grant matching uses live National Enterprise Hub grants data (Google Sheets, CC BY 4.0). GrantSeeker is a discovery aid, not a grants adviser; eligibility is subject to agency terms.</p>
+    <p class="footnote">© 2026 GrantPilot Ireland · Course project, NCI H9CEAI</p>
   </footer>
 
   <script src="config.js"></script>
