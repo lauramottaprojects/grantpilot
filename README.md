@@ -6,11 +6,12 @@ Live site: <https://lauramottaprojects.github.io/grantpilot/>
 
 ## How it works
 
-1. You describe your organisation (size, sector, location, funding need) in one message.
-2. Five specialist agents work automatically, and each agent's output is posted to the chat as a labelled **evidence card** in order:
+1. You chat with **Ella** (the concierge) first. She recognises when a message isn't a usable business description yet — even something garbled like *"I would like to ask a food"* — and asks you naturally for what's missing.
+2. When Ella has enough detail (sector, size, location, need), five specialist agents take over automatically, and each agent's output is posted to the chat as a labelled **evidence card** in order:
 
 | # | Agent | Role |
 |---|-------|------|
+| — | **Ella** — Concierge | Intake: conversational gate, gathers/clarifies before research starts |
 | 1 | **Maeve** — Researcher | Queries the **live** grants registry at runtime via a `search_grants()` tool call (no hardcoded data) |
 | 2 | **Conor** — Designer | Scores and structures the shortlist into a funding plan |
 | 3 | **Niamh** — Maker | Builds the user-facing version of the funding brief |
@@ -20,7 +21,7 @@ Live site: <https://lauramottaprojects.github.io/grantpilot/>
 ## Architecture
 
 - **Frontend** (this repo): static site on GitHub Pages — no secrets.
-- **Agent backend**: Vercel serverless function `api/agent.mjs`, which proxies each stage's prompt to **Gemini** (`gemini-3.1-flash-lite`). The Gemini API key lives only in a Vercel environment variable — never in the browser.
+- **Agent backend**: Vercel serverless function `api/agent.mjs` — two endpoints: `/api/intake` (Ella's conversational gate) and `/api/agent` (the five stages). Each proxies prompts to **Gemini** (`gemini-3.1-flash-lite`). The Gemini API key lives only in a Vercel environment variable — never in the browser.
 - **Live data**: the National Enterprise Hub grants registry (CC BY 4.0) served through a Google Sheets feed, fetched live by the Researcher agent's tool call at request time.
 
 ## Local terminal chat
