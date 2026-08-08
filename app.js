@@ -1,6 +1,10 @@
 (function () {
   const { API_BASE, FEED_URL, MODEL } = window.GRANTSEEKER;
 
+  const REQUEST_TIMEOUT_MS = 25000;
+  const MAX_ATTEMPTS = 3;
+  const RETRY_DELAY_MS = 1500;
+
   const STAGES = [
     { stage: 'researcher', name: 'Maeve', role: 'Researcher · Funding Analyst' },
     { stage: 'designer', name: 'Conor', role: 'Designer · Match Architect' },
@@ -20,6 +24,11 @@
   function setLive(state, text) {
     liveDot.className = 'dot' + (state === 'live' ? ' live' : state === 'err' ? ' err' : '');
     liveText.textContent = text;
+  }
+
+  function setBusy(busy) {
+    sendBtn.disabled = busy;
+    document.querySelectorAll('.chip').forEach((c) => { c.disabled = busy; });
   }
 
   function esc(s) {
@@ -86,7 +95,8 @@
     if (!card) return;
     card.classList.remove('pending');
     const head = card.querySelector('.card-head');
-    head.removeChild(head.querySelector('.spinner'));
+    const sp = head.querySelector('.spinner');
+    if (sp) sp.remove();
     card.querySelector('.card-body').innerHTML =
       '<div><strong>Agent unavailable.</strong> ' + esc(message) + '</div>';
   }
@@ -114,25 +124,54 @@
     return rows;
   }
 
+  async function fetchWithTimeout(url, options, ms) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    try {
+      return await fetch(url, { ...options, signal: ctrl.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function fetchLiveCount() {
-    const res = await fetch(FEED_URL);
+    const res = await fetchWithTimeout(FEED_URL, {}, 12000);
     if (!res.ok) throw new Error('live feed HTTP ' + res.status);
     const rows = parseCsv(await res.text());
     return Math.max(0, rows.length - 1);
   }
 
-  async function callAgent(stage, message, history) {
-    const res = await fetch(API_BASE + '/api/agent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stage, message, history }),
-    });
-    let json = null;
-    try { json = await res.json(); } catch (e) { /* ignore */ }
-    if (!res.ok || !json || !json.ok) {
-      throw new Error((json && json.error) || 'API returned HTTP ' + res.status);
+  async function callAgent(stage, message, history, onRetry) {
+    let lastErr = null;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        const res = await fetchWithTimeout(API_BASE + '/api/agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stage, message, history }),
+        }, REQUEST_TIMEOUT_MS);
+        let json = null;
+        try { json = await res.json(); } catch (e) { /* non-JSON body */ }
+        if (!res.ok || !json || !json.ok) {
+          const err = new Error((json && json.error) || 'API returned HTTP ' + res.status);
+          err.status = res.status;
+          throw err;
+        }
+        return json;
+      } catch (err) {
+        lastErr = err;
+        const retryable =
+          attempt < MAX_ATTEMPTS &&
+          (err.name === 'AbortError' || err.status === undefined || err.status >= 500);
+        if (!retryable) break;
+        if (onRetry) onRetry(attempt);
+        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+      }
     }
-    return json;
+    if (lastErr && lastErr.name === 'AbortError') {
+      throw new Error('the agent request timed out after ' + Math.round(REQUEST_TIMEOUT_MS / 1000) + ' seconds — please try again');
+    }
+    throw lastErr;
   }
 
   async function runPipeline(message) {
@@ -140,14 +179,24 @@
     addSystem('Live grants feed connected — ' + (await fetchLiveCount()).toLocaleString() + ' supports (Google Sheets). Five agents now working…');
     for (let i = 0; i < STAGES.length; i++) {
       const meta = STAGES[i];
-      addCard(meta, i);
+      const card = addCard(meta, i);
+      const bodyEl = card.querySelector('.card-body');
+      const t0 = Date.now();
+      const ticker = setInterval(() => {
+        if (!bodyEl) return;
+        bodyEl.textContent = 'Working… ' + Math.floor((Date.now() - t0) / 1000) + 's';
+      }, 1000);
       try {
-        const json = await callAgent(meta.stage, message, history);
+        const json = await callAgent(meta.stage, message, history, (retry) => {
+          bodyEl.textContent = 'Slow response — retrying (' + retry + '/' + (MAX_ATTEMPTS - 1) + ')…';
+        });
+        clearInterval(ticker);
         fillCard(meta, json.output);
         history.push({ id: json.agent.id, name: json.agent.name, role: json.agent.role, output: json.output });
       } catch (err) {
+        clearInterval(ticker);
         fillCardError(meta, err.message);
-        addSystem('Pipeline stopped: ' + meta.name + ' could not complete.');
+        addSystem('Pipeline stopped: ' + meta.name + ' could not complete. ' + err.message);
         return;
       }
     }
@@ -157,27 +206,31 @@
   async function submit(text) {
     addUser(text);
     input.value = '';
-    sendBtn.disabled = true;
+    setBusy(true);
     try {
       await runPipeline(text);
     } catch (err) {
       setLive('err', 'Live feed unreachable — retrying…');
       addSystem('Could not reach the live grants database: ' + err.message);
     } finally {
-      sendBtn.disabled = false;
+      setBusy(false);
       input.focus();
     }
   }
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+    if (sendBtn.disabled) return;
     const text = input.value.trim();
     if (!text) return;
     submit(text);
   });
 
   document.querySelectorAll('.chip').forEach((chip) => {
-    chip.addEventListener('click', () => submit(chip.dataset.example));
+    chip.addEventListener('click', () => {
+      if (chip.disabled) return;
+      submit(chip.dataset.example);
+    });
   });
 
   (async function init() {
